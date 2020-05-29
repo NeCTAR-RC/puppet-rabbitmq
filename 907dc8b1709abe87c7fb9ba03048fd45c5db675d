@@ -1,0 +1,7 @@
+Code-Review+2: Sam Morrison <sam.morrison@unimelb.edu.au>
+Verified+1: Jenkins <no-reply+jenkins@nectar.org.au>
+Submitted-by: Jake Yip <jake.yip@unimelb.edu.au>
+Submitted-at: Fri, 29 May 2020 10:46:35 +1000
+Reviewed-on: https://review.rc.nectar.org.au/c/NeCTAR-RC/puppet-rabbitmq/+/23091
+Project: NeCTAR-RC/puppet-rabbitmq
+Branch: refs/heads/nectar/v8.5.0
