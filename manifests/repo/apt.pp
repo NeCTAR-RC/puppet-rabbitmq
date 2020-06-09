@@ -16,9 +16,16 @@ class rabbitmq::repo::apt(
   $osname = downcase($facts['os']['name'])
   $pin    = $rabbitmq::package_apt_pin
 
+  if $facts['lsbdistcodename'] == 'focal' {
+    $_release = 'bionic'
+  } else {
+    $_release = $facts['lsbdistcodename']
+  }
+
   apt::source { 'rabbitmq':
     ensure       => present,
     location     => "${location}/${osname}",
+    release      => $_release,
     repos        => $repos,
     include      => { 'src' => $include_src },
     key          => {
