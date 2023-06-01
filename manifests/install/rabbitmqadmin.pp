@@ -48,7 +48,7 @@ class rabbitmq::install::rabbitmqadmin {
     if $facts['rabbitmq_version'] != $facts['rabbitmq_version_ctl']{
       Exec { 'remove_rabbitmqadmin_if_versions_do_not_match':
         path    => ['/bin','/usr/bin','/sbin','/usr/sbin'],
-        command => "rm ${rabbitmq::rabbitmq_home}/rabbitmqadmin",
+        command => "rm -f ${rabbitmq::rabbitmq_home}/rabbitmqadmin",
         notify  => Archive['rabbitmqadmin'],
       }
     }
