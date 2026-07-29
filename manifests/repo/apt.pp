@@ -20,13 +20,19 @@ class rabbitmq::repo::apt (
   String[1] $key_source          = $rabbitmq::package_gpg_key,
   Optional[String[1]] $key_content  = $rabbitmq::key_content,
   Optional[String[1]] $architecture = undef,
+  Boolean $append_osname            = true,
 ) {
   $osname = downcase($facts['os']['name'])
   $pin    = $rabbitmq::package_apt_pin
 
+  $full_location = $append_osname ? {
+    true    => "${location}/${osname}",
+    default => $location,
+  }
+
   apt::source { 'rabbitmq':
     ensure       => present,
-    location     => "${location}/${osname}",
+    location     => $full_location,
     repos        => $repos,
     include      => { 'src' => $include_src },
     key          => {
