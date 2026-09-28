@@ -108,15 +108,36 @@ describe 'rabbitmq' do
       context 'with no pin', if: os_facts['os']['family'] == 'Debian' do
         let(:params) { { repos_ensure: true, package_apt_pin: nil } }
 
-        describe 'it sets up an apt::source' do
+        describe 'it sets up an apt::keyring and apt::source' do
+          it {
+            is_expected.to contain_apt__keyring('rabbitmq.asc').with(
+              'source' => 'https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey',
+              'content' => nil
+            )
+          }
+
           it {
             is_expected.to contain_apt__source('rabbitmq').with(
               'location' => "https://packagecloud.io/rabbitmq/rabbitmq-server/#{os_facts['os']['name'].downcase}",
               'repos' => 'main',
-              'key' => '{"id"=>"8C695B0219AFDEB04A058ED8F4E789204D206F89", "source"=>"https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey", "content"=>nil}'
-            )
+              'key' => nil,
+              'keyring' => '/etc/apt/keyrings/rabbitmq.asc'
+            ).that_requires('Apt::Keyring[rabbitmq.asc]')
           }
+
+          it { is_expected.not_to contain_apt__key('Add key: 8C695B0219AFDEB04A058ED8F4E789204D206F89 from Apt::Source rabbitmq') }
         end
+      end
+
+      context 'with key_content', if: os_facts['os']['family'] == 'Debian' do
+        let(:params) { { repos_ensure: true, key_content: '-----BEGIN PGP PUBLIC KEY BLOCK-----' } }
+
+        it {
+          is_expected.to contain_apt__keyring('rabbitmq.asc').with(
+            'source' => nil,
+            'content' => '-----BEGIN PGP PUBLIC KEY BLOCK-----'
+          )
+        }
       end
 
       context 'with pin', if: os_facts['os']['family'] == 'Debian' do
@@ -127,7 +148,7 @@ describe 'rabbitmq' do
             is_expected.to contain_apt__source('rabbitmq').with(
               'location' => "https://packagecloud.io/rabbitmq/rabbitmq-server/#{os_facts['os']['name'].downcase}",
               'repos' => 'main',
-              'key' => '{"id"=>"8C695B0219AFDEB04A058ED8F4E789204D206F89", "source"=>"https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey", "content"=>nil}'
+              'keyring' => '/etc/apt/keyrings/rabbitmq.asc'
             )
           }
 

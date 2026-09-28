@@ -8,9 +8,13 @@
 # @param repos
 # @param include_src
 # @param key
+#   Deprecated. The signing key is now installed as a keyring file under
+#   /etc/apt/keyrings so the key ID is no longer used. Kept so existing Hiera
+#   data continues to work.
 # @param key_source
 # @param key_content
 # @param architecture
+# @param append_osname
 #
 class rabbitmq::repo::apt (
   String[1] $location            = 'https://packagecloud.io/rabbitmq/rabbitmq-server',
@@ -30,17 +34,31 @@ class rabbitmq::repo::apt (
     default => $location,
   }
 
+  # apt-key has been removed from newer releases (Ubuntu 26.04 onwards), so
+  # install the signing key as a keyring file and reference it with signed-by
+  # rather than adding it to the legacy trusted.gpg via apt::key. The upstream
+  # keys are ASCII armoured, hence the .asc extension.
+  $keyring_name = 'rabbitmq.asc'
+  $keyring_path = "/etc/apt/keyrings/${keyring_name}"
+
+  if $key_content {
+    apt::keyring { $keyring_name:
+      content => $key_content,
+    }
+  } else {
+    apt::keyring { $keyring_name:
+      source => $key_source,
+    }
+  }
+
   apt::source { 'rabbitmq':
     ensure       => present,
     location     => $full_location,
     repos        => $repos,
     include      => { 'src' => $include_src },
-    key          => {
-      'id'      => $key,
-      'source'  => $key_source,
-      'content' => $key_content,
-    },
+    keyring      => $keyring_path,
     architecture => $architecture,
+    require      => Apt::Keyring[$keyring_name],
   }
 
   if $pin {
