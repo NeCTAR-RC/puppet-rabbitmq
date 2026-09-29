@@ -19,6 +19,7 @@
 class rabbitmq::repo::apt (
   String[1] $location            = 'https://packagecloud.io/rabbitmq/rabbitmq-server',
   String[1] $repos               = 'main',
+  String[1] $release             = $facts['os']['distro']['codename'],
   Boolean $include_src           = false,
   String[1] $key                 = '8C695B0219AFDEB04A058ED8F4E789204D206F89',
   String[1] $key_source          = $rabbitmq::package_gpg_key,
@@ -65,6 +66,7 @@ class rabbitmq::repo::apt (
     ensure       => present,
     location     => $full_location,
     repos        => $repos,
+    release      => $release,
     include      => { 'src' => $include_src },
     keyring      => $keyring_path,
     architecture => $architecture,
