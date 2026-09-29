@@ -138,6 +138,27 @@ describe 'rabbitmq' do
             'content' => '-----BEGIN PGP PUBLIC KEY BLOCK-----'
           )
         }
+
+        it { is_expected.to contain_apt__source('rabbitmq').with_keyring('/etc/apt/keyrings/rabbitmq.asc') }
+      end
+
+      context 'with a binary keyring as package_gpg_key', if: os_facts['os']['family'] == 'Debian' do
+        let(:params) { { repos_ensure: true, package_gpg_key: 'https://download.example.org/com.rabbitmq.team.gpg' } }
+
+        it {
+          is_expected.to contain_apt__keyring('rabbitmq.gpg').with(
+            'source' => 'https://download.example.org/com.rabbitmq.team.gpg',
+            'content' => nil
+          )
+        }
+
+        it { is_expected.not_to contain_apt__keyring('rabbitmq.asc') }
+
+        it {
+          is_expected.to contain_apt__source('rabbitmq').
+            with_keyring('/etc/apt/keyrings/rabbitmq.gpg').
+            that_requires('Apt::Keyring[rabbitmq.gpg]')
+        }
       end
 
       context 'with pin', if: os_facts['os']['family'] == 'Debian' do

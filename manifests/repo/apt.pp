@@ -36,20 +36,30 @@ class rabbitmq::repo::apt (
 
   # apt-key has been removed from newer releases (Ubuntu 26.04 onwards), so
   # install the signing key as a keyring file and reference it with signed-by
-  # rather than adding it to the legacy trusted.gpg via apt::key. The upstream
-  # keys are ASCII armoured, hence the .asc extension.
-  $keyring_name = 'rabbitmq.asc'
-  $keyring_path = "/etc/apt/keyrings/${keyring_name}"
-
+  # rather than adding it to the legacy trusted.gpg via apt::key.
+  #
+  # apt tells a binary keyring from an ASCII armoured one by the file
+  # extension, so match the extension of the source: .gpg for a binary
+  # keyring, otherwise .asc for the armoured format that keyservers and
+  # key_content provide.
   if $key_content {
+    $keyring_name = 'rabbitmq.asc'
+
     apt::keyring { $keyring_name:
       content => $key_content,
     }
   } else {
+    $keyring_name = $key_source ? {
+      /\.gpg$/ => 'rabbitmq.gpg',
+      default  => 'rabbitmq.asc',
+    }
+
     apt::keyring { $keyring_name:
       source => $key_source,
     }
   }
+
+  $keyring_path = "/etc/apt/keyrings/${keyring_name}"
 
   apt::source { 'rabbitmq':
     ensure       => present,
